@@ -53,7 +53,7 @@
                             <td><%= contact.getIdNumber() %></td>
                             <td><%= contact.getDateOfBirth() %></td>
                             <td>
-                                <button class="edit btn btn-warning" data-id="<%= contact.getIdNumber() %>" onclick="'updateContact(<%= contact.getIdNumber() %>)'">Edit</button>
+                                <button class="edit btn btn-warning" data-id="<%= contact.getIdNumber() %>" >Edit</button>
                                 <button class="delete btn btn-danger" data-id="<%= contact.getIdNumber() %>">Delete</button>
                             </td>
                         </tr>
@@ -109,25 +109,34 @@
 
             $(".edit").on("click", function () {
                 let contactId = $(this).data("id");
-                $.ajax({
-                    url: "ContactServlet?id=" + contactId,
-                    type: "PUT",
-                    success: function(contact) {
-                            // $("#contactId").val(contact.id);
-                            $("#fullName").val(contact.full_name);
-                            $("#emailAddress").val(contact.email);
-                            $("#phoneNumber").val(contact.phone_number);
-                            $("#countyOfResidence").val(contact.county_of_residence);
-                            $("#idNumber").val(contact.id_number);
-                            $("#dateOfBirth").val(contact.date_of_birth);
-                            $("input[name='gender'][value='" + contact.gender + "']").prop("checked", true);
-
-                        //change button to update
-                         $("#contactForm button").text("Update Contact").attr("data-action", "update");
-                    },
-                    error: function() {
-                        alert("Error fetching contact details!");
+                // make the table row editable
+                $(this).closest("tr").find("td").each(function() {
+                    let cell = $(this);
+                    if (cell.index() < 6) { // Only make the first 6 cells editable
+                        let currentValue = cell.text();
+                        cell.html("<input type='text' value='" + currentValue + "' />");
                     }
+                });
+                $(this).text("Save").removeClass("edit").addClass("save").off("click").on("click", function() {
+                    let updatedData = {};
+                    $(this).closest("tr").find("input").each(function() {
+                        let input = $(this);
+                        let columnName = input.closest("td").index();
+                        updatedData[columnName] = input.val();
+                    });
+                    $.ajax({
+                        url: "ContactServlet?id=" + contactId,
+                        type: "PUT",
+                        data: updatedData,
+                        success: function() {
+                            alert("Contact updated successfully!");
+                            location.reload();
+                        },
+                        error: function(xhr, status, error) {
+                            alert("Error updating contact!"+ xhr.responseText);
+                            console.error("Error details: " + error);
+                        }
+                    });
                 });
             });
         });
