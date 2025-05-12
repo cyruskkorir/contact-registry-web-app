@@ -44,20 +44,20 @@ public class ContactServlet extends HttpServlet {
         String county = request.getParameter("county_of_residence");
 
         try {
-            PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO contacts (full_name, phone_number, email, id_number, date_of_birth, gender, county_of_residence) VALUES (?, ?, ?, ?, ?, ?, ?)"
-            );
-            stmt.setString(1, fullName);
-            stmt.setString(2, phoneNumber);
-            stmt.setString(3, email);
-            stmt.setString(4, idNumber);
-            stmt.setDate(5, Date.valueOf(dob));
-            stmt.setString(6, gender);
-            stmt.setString(7, county);
-            stmt.executeUpdate();
-            stmt.close();
+            try (PreparedStatement stmt = connection.prepareStatement(
+                    "update contacts set full_name=?, phone_number=?, email_address=?, id_number=?, date_of_birth=?, gender=?, county_of_residence=? where id_number=?"
+            )) {
+                stmt.setString(1, fullName);
+                stmt.setString(2, phoneNumber);
+                stmt.setString(3, email);
+                stmt.setString(4, idNumber);
+                stmt.setDate(5, Date.valueOf(dob));
+                stmt.setString(6, gender);
+                stmt.setString(7, county);
+                stmt.setString(8, idNumber); // id_number is the primary key
+                stmt.executeUpdate();
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         response.sendRedirect("index.jsp"); // Redirect to main page after insert
@@ -69,22 +69,20 @@ public class ContactServlet extends HttpServlet {
         List<Contact> contacts = new ArrayList<>();
 
         try {
-            Statement stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM contacts");
-
-            while (rs.next()) {
-                Contact contact = new Contact(
-                    rs.getString("full_name"),
-                    rs.getString("phone_number"),
-                    rs.getString("email_address"),
-                    rs.getString("id_number"),
-                    rs.getDate("date_of_birth").toLocalDate(),
-                    rs.getString("gender"),
-                    rs.getString("county_of_residence"));
-                contacts.add(contact);
+            try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery("SELECT * FROM contacts")) {
+                
+                while (rs.next()) {
+                    Contact contact = new Contact(
+                            rs.getString("full_name"),
+                            rs.getString("phone_number"),
+                            rs.getString("email_address"),
+                            rs.getString("id_number"),
+                            rs.getDate("date_of_birth").toLocalDate(),
+                            rs.getString("gender"),
+                            rs.getString("county_of_residence"));
+                    contacts.add(contact);
+                }
             }
-            rs.close();
-            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

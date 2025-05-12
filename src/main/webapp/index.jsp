@@ -53,7 +53,7 @@
                             <td><%= contact.getIdNumber() %></td>
                             <td><%= contact.getDateOfBirth() %></td>
                             <td>
-                                <button class="edit btn btn-warning" data-id="<%= contact.getIdNumber() %>">Edit</button>
+                                <button class="edit btn btn-warning" data-id="<%= contact.getIdNumber() %>" onclick="'updateContact(<%= contact.getIdNumber() %>)'">Edit</button>
                                 <button class="delete btn btn-danger" data-id="<%= contact.getIdNumber() %>">Delete</button>
                             </td>
                         </tr>
