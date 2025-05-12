@@ -10,9 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,6 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ContactServlet extends HttpServlet {
     private Connection connection;
 
+    @Override
     public void init() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -34,6 +33,7 @@ public class ContactServlet extends HttpServlet {
     }
 
     // ✅ CREATE: Add New Contact (Handled via POST)
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String fullName = request.getParameter("full_name");
         String phoneNumber = request.getParameter("phone_number");
@@ -64,6 +64,7 @@ public class ContactServlet extends HttpServlet {
     }
 
     // ✅ READ: Fetch All Contacts (Handled via GET)
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         List<Contact> contacts = new ArrayList<>();
 
@@ -93,6 +94,7 @@ public class ContactServlet extends HttpServlet {
     }
 
     // ✅ UPDATE: Modify Contact Information (Handled via PUT)
+    @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String id = request.getParameter("id_number");
         String phoneNumber = request.getParameter("phone_number");
@@ -115,6 +117,7 @@ public class ContactServlet extends HttpServlet {
     }
 
     // ✅ DELETE: Remove Contact (Handled via DELETE)
+    @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String id = request.getParameter("id");
 

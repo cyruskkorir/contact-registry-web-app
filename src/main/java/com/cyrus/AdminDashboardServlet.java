@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class AdminDashboardServlet extends HttpServlet {
     private Connection connection;
 
+    @Override
     public void init() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
