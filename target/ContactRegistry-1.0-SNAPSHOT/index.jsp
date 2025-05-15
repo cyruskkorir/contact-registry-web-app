@@ -115,7 +115,7 @@
                      .replace(/>/g, "&gt;")
                      .replace(/"/g, "&quot;")
                      .replace(/'/g, "&#039;");
-            }
+            }   
 
             // Define the Edit handler logic
             function handleEditClick() {

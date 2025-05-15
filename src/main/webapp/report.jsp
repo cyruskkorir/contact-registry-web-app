@@ -22,7 +22,7 @@
     <h1>Contact Report</h1>
 
     <!-- Filter Contacts by County -->
-    <form method="get" action="ReportServlet">
+    <form method="get" action="report">
         <label for="county">Filter by County:</label>
         <select name="county" id="county">
             <option value="">All Counties</option>
