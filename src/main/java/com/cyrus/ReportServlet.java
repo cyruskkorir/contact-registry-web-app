@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -25,7 +26,7 @@ public class ReportServlet extends HttpServlet {
             List<Contact> contacts;
             List<String> counties = new ArrayList<>();
             Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection connection = DriverManager.getConnection(DatabaseConnection.url, DatabaseConnection.user, DatabaseConnection.password)) {
+            try (Connection connection = DriverManager.getConnection(DatabaseConnection.URL, DatabaseConnection.USER, DatabaseConnection.PASSWORD)) {
                 String sql = "SELECT * FROM contacts";
                 if (countyFilter != null && !countyFilter.isEmpty()) {
                     sql += " WHERE county_of_residence = ?";
@@ -39,6 +40,7 @@ public class ReportServlet extends HttpServlet {
                         contacts = new ArrayList<>();
                         while (rs.next()) {
                             Contact contact = new Contact(
+                                    rs.getLong("id"),
                                     rs.getString("full_name"),
                                     rs.getString("phone_number"),
                                     rs.getString("email_address"),
@@ -56,8 +58,9 @@ public class ReportServlet extends HttpServlet {
             request.getRequestDispatcher("report.jsp").forward(request, response);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ReportServlet.class.getName()).log(java.util.logging.Level.SEVERE, "Database error: {0}", e.getMessage());
         } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ReportServlet.class.getName()).log(java.util.logging.Level.SEVERE, "JDBC Driver not found: {0}", ex.getMessage());
         }
     }
 

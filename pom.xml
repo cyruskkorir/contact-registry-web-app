@@ -40,18 +40,7 @@
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-war-plugin</artifactId>
-            <version>3.4.0</version>  <!-- Use latest stable version -->
-            <configuration>
-                <failOnMissingWebXml>false</failOnMissingWebXml>
-                <webResources>
-                    <resource>
-                        <directory>src/main/webapp</directory>
-                        <includes>
-                            <include>**/*.jsp</include>
-                        </includes>
-                    </resource>
-                </webResources>
-            </configuration>
+            <version>3.4.0</version> 
         </plugin>
     </plugins>
 </build>

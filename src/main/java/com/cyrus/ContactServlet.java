@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,7 +20,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/ContactServlet")
+@WebServlet(name = "ContactServlet", urlPatterns = "/contact")
 public class ContactServlet extends HttpServlet {
     private Connection connection;
 
@@ -26,9 +28,9 @@ public class ContactServlet extends HttpServlet {
     public void init() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection(DatabaseConnection.url, DatabaseConnection.user, DatabaseConnection.password);
-        } catch (Exception e) {
-            e.printStackTrace();
+            connection = DriverManager.getConnection(DatabaseConnection.URL, DatabaseConnection.USER, DatabaseConnection.PASSWORD);
+        } catch (ClassNotFoundException | SQLException e) {
+            Logger.getLogger(ContactServlet.class.getName()).log(Level.SEVERE, "Database connection error: {0}", e.getMessage());    
         }
     }
 
@@ -44,9 +46,11 @@ public class ContactServlet extends HttpServlet {
         String county = request.getParameter("county_of_residence");
 
         try {
-            try (PreparedStatement stmt = connection.prepareStatement(
-                    "update contacts set full_name=?, phone_number=?, email_address=?, id_number=?, date_of_birth=?, gender=?, county_of_residence=? where id_number=?"
-            )) {
+            try (
+                PreparedStatement stmt = connection.prepareStatement(
+                    "insert into contacts(full_name, phone_number, email_address, id_number, date_of_birth, gender, county_of_residence) values(?, ?, ?, ?, ?, ?, ?)"
+                    );
+            ) {
                 stmt.setString(1, fullName);
                 stmt.setString(2, phoneNumber);
                 stmt.setString(3, email);
@@ -54,10 +58,10 @@ public class ContactServlet extends HttpServlet {
                 stmt.setDate(5, Date.valueOf(dob));
                 stmt.setString(6, gender);
                 stmt.setString(7, county);
-                stmt.setString(8, idNumber); // id_number is the primary key
-                stmt.executeUpdate();
+                stmt.execute();
             }
         } catch (SQLException e) {
+            Logger.getLogger(ContactServlet.class.getName()).log(Level.SEVERE, "Error inserting contact: {0}", e.getMessage());
         }
 
         response.sendRedirect("index.jsp"); // Redirect to main page after insert
@@ -73,6 +77,7 @@ public class ContactServlet extends HttpServlet {
                 
                 while (rs.next()) {
                     Contact contact = new Contact(
+                            rs.getLong("id"),
                             rs.getString("full_name"),
                             rs.getString("phone_number"),
                             rs.getString("email_address"),
@@ -84,7 +89,7 @@ public class ContactServlet extends HttpServlet {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ContactServlet.class.getName()).log(Level.SEVERE, "Error fetching contacts: {0}", e.getMessage());
         }
 
         request.setAttribute("contacts", contacts);
@@ -94,21 +99,33 @@ public class ContactServlet extends HttpServlet {
     // ✅ UPDATE: Modify Contact Information (Handled via PUT)
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String id = request.getParameter("id_number");
+        String id = request.getParameter("id");
+        String idNUmber = request.getParameter("id_number");
         String phoneNumber = request.getParameter("phone_number");
         String email = request.getParameter("email");
+        String dob = request.getParameter("date_of_birth");
+        String fullName = request.getParameter(dob);
+        String gender = request.getParameter("gender");
+        String county = request.getParameter("county_of_residence");
 
-        try {
+
+        try (
             PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE contacts SET phone_number = ?, email_address = ? WHERE id = ?"
-            );
+                "UPDATE contacts SET phone_number = ?, email_address = ?, id_number = ?, date_of_birth = ?, full_name = ?, gender = ?, county_of_residence = ? WHERE id = ?"
+            )){
+
             stmt.setString(1, phoneNumber);
             stmt.setString(2, email);
-            stmt.setString(3, id);
+            stmt.setString(3, idNUmber);
+            stmt.setString(4, dob);
+            stmt.setString(5, fullName);
+            stmt.setString(6, gender);
+            stmt.setString(7, county);
+            stmt.setString(8, id);
             stmt.executeUpdate();
             stmt.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ContactServlet.class.getName()).log(Level.SEVERE, "Error updating contact: {0}", e.getMessage());
         }
 
         response.getWriter().write("Contact Updated Successfully");
@@ -119,14 +136,13 @@ public class ContactServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String id = request.getParameter("id");
 
-        try {
-            PreparedStatement stmt = connection.prepareStatement("DELETE FROM contacts WHERE id_number = ?");
-            stmt.setString(1, id);
-            stmt.executeUpdate();
-            stmt.close();
-            response.getWriter().write("Contact Deleted Successfully");
+    
+        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM contacts WHERE id = ?")) {
+                stmt.setString(1, id);
+                stmt.executeUpdate();
+                response.getWriter().write("Contact Deleted Successfully");
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ContactServlet.class.getName()).log(Level.SEVERE, "Error deleting contact: {0}", e.getMessage());
         }
     }
 }

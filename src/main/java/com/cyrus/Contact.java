@@ -3,6 +3,7 @@ package com.cyrus;
 import java.time.LocalDate;
 
 public class Contact {
+    private Long id;
     private String fullName;
     private String phoneNumber;
     private String email;
@@ -13,16 +14,18 @@ public class Contact {
 
     
 
-    public Contact(String fullName, String phoneNumber, String email, String idNumber, LocalDate dateOfBirth,
+    public Contact(Long id, String fullName, String phoneNumber, String email, String idNumber, LocalDate dateOfBirth,
             String gender, String countyOfResidence) {
-        this.fullName = fullName;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.idNumber = idNumber;
-        this.dateOfBirth = dateOfBirth;
-        this.gender = gender;
-        this.countyOfResidence = countyOfResidence;
+                this.id = id;
+                this.fullName = fullName;
+                this.phoneNumber = phoneNumber;
+                this.email = email;
+                this.idNumber = idNumber;
+                this.dateOfBirth = dateOfBirth;
+                this.gender = gender;
+                this.countyOfResidence = countyOfResidence;
     }
+    
     public String getFullName() {
         return fullName;
     }
@@ -65,6 +68,14 @@ public class Contact {
     public void setCountyOfResidence(String countyOfResidence) {
         this.countyOfResidence = countyOfResidence;
     }
+
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
     
 
 

@@ -11,7 +11,7 @@
 
     <!-- Contact Form -->
     <form id="contactForm">
-        <!-- <input type="hidden" id="contactId" name="id"> -->
+        <input type="hidden" id="contactId" name="id">
         <input type="text" id="fullName" name="full_name" placeholder="Full Name" required>
         <input type="email" id="emailAddress" name="email" placeholder="Email Address" required>
         <input type="text" id="phoneNumber" name="phone_number" placeholder="Phone Number" required>
@@ -22,7 +22,7 @@
         <label><input type="radio" name="gender" value="Female" required> Female</label>
         <label>Date of Birth:</label>
         <input type="date" id="dateOfBirth" name="date_of_birth"/>
-        <button type="submit">Save Contact</button>
+        <button type="submit" class="btn btn-primary">Save Contact</button>
     </form>
 
     <!-- Contact Table -->
@@ -53,8 +53,8 @@
                             <td><%= contact.getIdNumber() %></td>
                             <td><%= contact.getDateOfBirth() %></td>
                             <td>
-                                <button class="edit btn btn-warning" data-id="<%= contact.getIdNumber() %>" >Edit</button>
-                                <button class="delete btn btn-danger" data-id="<%= contact.getIdNumber() %>">Delete</button>
+                                <button class="edit btn btn-warning" data-id="<%= contact.getId() %>" >Edit</button>
+                                <button class="delete btn btn-danger" data-id="<%= contact.getId() %>">Delete</button>
                             </td>
                         </tr>
             <%
@@ -75,7 +75,7 @@
             $("#contactForm").on("submit", function(event) {
                 event.preventDefault();
                 $.ajax({
-                    url: "ContactServlet",
+                    url: "contact",
                     type: "POST",
                     data: $(this).serialize(),
                     success: function(response) {
@@ -93,7 +93,7 @@
                 let contactId = $(this).data("id");
                 if (confirm("Are you sure you want to delete this contact?")) {
                     $.ajax({
-                        url: "ContactServlet?id=" + contactId,
+                        url: "contact?id=" + contactId,
                         type: "DELETE",
                         success: function() {
                             alert("Contact deleted successfully!");
@@ -107,38 +107,96 @@
                 }
             });
 
-            $(".edit").on("click", function () {
+            // Helper function to escape HTML entities for input values
+            function escapeHtml(unsafe) {
+                return unsafe
+                     .replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+            }   
+
+            // Define the Edit handler logic
+            function handleEditClick() {
                 let contactId = $(this).data("id");
+                let $row = $(this).closest("tr"); // Store reference to the row
+                let $editButton = $(this); // Store reference to the button
+
                 // make the table row editable
-                $(this).closest("tr").find("td").each(function() {
-                    let cell = $(this);
-                    if (cell.index() < 6) { // Only make the first 6 cells editable
-                        let currentValue = cell.text();
-                        cell.html("<input type='text' value='" + currentValue + "' />");
+                $row.find("td").each(function() {
+                    let $cell = $(this);
+                    if ($cell.index() < 6) { // Only make the first 6 cells editable
+                        let currentValue = $cell.text();
+                        // Replace cell content with an input field, pre-filled with current value
+                        $cell.html("<input type='text' class='form-control form-control-sm' value='" + escapeHtml(currentValue) + "' />");
                     }
                 });
-                $(this).text("Save").removeClass("edit").addClass("save").off("click").on("click", function() {
-                    let updatedData = {};
-                    $(this).closest("tr").find("input").each(function() {
-                        let input = $(this);
-                        let columnName = input.closest("td").index();
-                        updatedData[columnName] = input.val();
-                    });
-                    $.ajax({
-                        url: "ContactServlet?id=" + contactId,
-                        type: "PUT",
-                        data: updatedData,
-                        success: function() {
-                            alert("Contact updated successfully!");
-                            location.reload();
-                        },
-                        error: function(xhr, status, error) {
-                            alert("Error updating contact!"+ xhr.responseText);
-                            console.error("Error details: " + error);
-                        }
-                    });
+
+                // Change button to Save and attach Save handler
+                $editButton.text("Save").removeClass("edit btn-warning").addClass("save btn-success").off("click").on("click", handleSaveClick);
+
+                // Store contactId on the row for easier access in save handler
+                $row.data("contact-id", contactId);
+            }
+
+            // Define the Save handler logic
+            function handleSaveClick() {
+                let $saveButton = $(this);
+                let $row = $saveButton.closest("tr");
+                let contactId = $row.data("contact-id"); // Retrieve contactId from the row
+
+                let updatedData = {};
+                // Map cell indices to meaningful parameter names expected by the server
+                // These should match the 'name' attributes in your main form and what your servlet expects
+                let columnNames = ["full_name", "email", "phone_number", "county_of_residence", "id_number", "date_of_birth"];
+
+                $row.find("input[type='text']").each(function() { // Target only the text inputs we created
+                    let $input = $(this);
+                    let cellIndex = $input.closest("td").index();
+                    if (cellIndex < columnNames.length) {
+                         updatedData[columnNames[cellIndex]] = $input.val();
+                    }
                 });
-            });
+
+                $.ajax({
+                    url: "contact?id=" + contactId,
+                    type: "PUT",
+                    data: updatedData, // Send the collected data with meaningful names
+                    success: function(response) { // Assuming server might send back the updated contact or a success message
+                        alert("Contact updated successfully!");
+
+                        // Update the row with the new text values and revert inputs
+                        $row.find("td").each(function() {
+                            let $cell = $(this);
+                            let cellIndex = $cell.index();
+                            if (cellIndex < 6 && columnNames[cellIndex]) { // Only process the cells that were editable
+                                 let newValue = updatedData[columnNames[cellIndex]];
+                                 $cell.text(newValue !== undefined ? newValue : ''); // Set the cell text, handle undefined
+                            }
+                        });
+
+                        // Revert button back to Edit and attach Edit handler
+                        $saveButton.text("Edit").removeClass("save btn-success").addClass("edit btn-warning").off("click").on("click", handleEditClick);
+
+                        // Remove the stored contactId from the row
+                        $row.removeData("contact-id");
+
+                        // No page reload needed!
+                    },
+                    error: function(xhr, status, error) {
+                        alert("Error updating contact! " + xhr.responseText);
+                        console.error("Error details: ", status, error, xhr.responseText);
+                        // Optional: Revert button to Save or leave row editable on error,
+                        // or even revert to original values if you stored them.
+                        // For simplicity, we'll leave it as is, but you might want to revert the button:
+                        // $saveButton.text("Save").removeClass("edit btn-warning").addClass("save btn-success"); // Keep it as Save
+                    }
+                });
+            }
+
+            // Attach the initial Edit handler to all buttons with class 'edit'
+            $(".edit").on("click", handleEditClick);
         });
     </script>
 </body>

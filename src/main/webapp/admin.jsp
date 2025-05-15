@@ -16,7 +16,7 @@
         <%
             Map<String, Integer> genderStats = (Map<String, Integer>) request.getAttribute("genderStats");
 
-            if (genderStats != null) {  // ✅ Prevent NullPointerException
+            if (genderStats != null) {  
                 for (String gender : genderStats.keySet()) {
         %>
                 <tr>
@@ -44,7 +44,7 @@
         <%
             Map<String, Integer> countyStats = (Map<String, Integer>) request.getAttribute("countyStats");
 
-            if (countyStats != null) {  // ✅ Prevent NullPointerException
+            if (countyStats != null) { 
                 for (String county : countyStats.keySet()) {
         %>
                 <tr>
