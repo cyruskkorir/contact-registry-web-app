@@ -117,7 +117,7 @@
 +-   **`com.cyrus.AdminDashboardServlet` (mapped to `/admin`)**
 +    -   `GET`: Fetches contact statistics (gender, county) and recent contacts, then forwards to `admin.jsp`.
 +
-+-   **`com.cyrus.ReportServlet` (mapped to `/ReportServlet`)**
++-   **`com.cyrus.ReportServlet` (mapped to `/report`)**
 +    -   `GET`: Fetches contacts (optionally filtered by `county` request parameter) and a list of distinct counties, then forwards to `report.jsp`.
 +
 +## Usage
