@@ -1,6 +1,7 @@
 package com.cyrus;
 // ContactServlet.java
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONObject;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -100,18 +103,31 @@ public class ContactServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String id = request.getParameter("id");
-        String idNUmber = request.getParameter("id_number");
-        String phoneNumber = request.getParameter("phone_number");
-        String email = request.getParameter("email");
-        String dob = request.getParameter("date_of_birth");
-        String fullName = request.getParameter(dob);
-        String gender = request.getParameter("gender");
-        String county = request.getParameter("county_of_residence");
+        BufferedReader reader = request.getReader();
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+        String json = sb.toString();
+        JSONObject jsonObject = new JSONObject(json);
+
+        String fullName = jsonObject.getString("full_name");
+        String phoneNumber = jsonObject.getString("phone_number");
+        String email = jsonObject.getString("email_address");
+        String idNUmber = jsonObject.getString("id_number");
+        String dob = jsonObject.getString("date_of_birth");
+        String county = jsonObject.getString("county_of_residence");
+
+
+
+        Logger.getLogger(ContactServlet.class.getName()).log(Level.INFO, "Updating contact with ID: {0}", id);
+
 
 
         try (
             PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE contacts SET phone_number = ?, email_address = ?, id_number = ?, date_of_birth = ?, full_name = ?, gender = ?, county_of_residence = ? WHERE id = ?"
+                "UPDATE contacts SET phone_number = ?, email_address = ?, id_number = ?, date_of_birth = ?, full_name = ?, county_of_residence = ? WHERE id = ?"
             )){
 
             stmt.setString(1, phoneNumber);
@@ -119,9 +135,8 @@ public class ContactServlet extends HttpServlet {
             stmt.setString(3, idNUmber);
             stmt.setString(4, dob);
             stmt.setString(5, fullName);
-            stmt.setString(6, gender);
-            stmt.setString(7, county);
-            stmt.setString(8, id);
+            stmt.setString(6, county);
+            stmt.setString(7, id);
             stmt.executeUpdate();
             stmt.close();
         } catch (SQLException e) {

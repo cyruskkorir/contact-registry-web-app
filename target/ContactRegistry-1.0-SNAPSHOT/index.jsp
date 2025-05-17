@@ -149,7 +149,7 @@
                 let updatedData = {};
                 // Map cell indices to meaningful parameter names expected by the server
                 // These should match the 'name' attributes in your main form and what your servlet expects
-                let columnNames = ["full_name", "email", "phone_number", "county_of_residence", "id_number", "date_of_birth"];
+                let columnNames = ["full_name", "email_address", "phone_number", "county_of_residence", "id_number", "date_of_birth"];
 
                 $row.find("input[type='text']").each(function() { // Target only the text inputs we created
                     let $input = $(this);
@@ -158,11 +158,14 @@
                          updatedData[columnNames[cellIndex]] = $input.val();
                     }
                 });
+                console.log(updatedData);
+
 
                 $.ajax({
                     url: "contact?id=" + contactId,
                     type: "PUT",
-                    data: updatedData, // Send the collected data with meaningful names
+                    contentType: "application/json",
+                    data: JSON.stringify(updatedData),
                     success: function(response) { // Assuming server might send back the updated contact or a success message
                         alert("Contact updated successfully!");
 
@@ -182,7 +185,6 @@
                         // Remove the stored contactId from the row
                         $row.removeData("contact-id");
 
-                        // No page reload needed!
                     },
                     error: function(xhr, status, error) {
                         alert("Error updating contact! " + xhr.responseText);
